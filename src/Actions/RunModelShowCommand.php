@@ -19,12 +19,13 @@ class RunModelShowCommand
      */
     public function __invoke(string $model): array
     {
-        $exitCode = Artisan::call("model:show {$model} --json --no-interaction");
+        Artisan::call('model:show', ['model' => $model, '--json' => true]);
+        $output = json_decode(Artisan::output(), true);
 
-        if ($exitCode !== 0) {
+        if (!$output) {
             throw new Exception('You may need to install the doctrine/dbal package to use this command.');
         }
 
-        return json_decode(Artisan::output(), true);
+        return $output;
     }
 }

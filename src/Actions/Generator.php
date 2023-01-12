@@ -31,6 +31,11 @@ class Generator
      */
     protected function getModels(?string $model = null): Collection
     {
+        if (class_exists($model)) {
+            $modelPath = (new \ReflectionClass($model))->getFileName();
+            return collect([new SplFileInfo($modelPath, '', '')]);
+        }
+
         return collect(File::allFiles(app_path('Models')))
             ->filter(fn (SplFileInfo $file) => $file->getExtension() === 'php')
             ->when(

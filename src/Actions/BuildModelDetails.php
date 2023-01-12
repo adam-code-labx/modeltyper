@@ -4,6 +4,8 @@ namespace FumeApp\ModelTyper\Actions;
 
 use FumeApp\ModelTyper\Traits\ClassBaseName;
 use FumeApp\ModelTyper\Traits\ModelRefClass;
+use Illuminate\Console\Concerns\CallsCommands;
+use Illuminate\Support\Facades\Artisan;
 use ReflectionException;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -11,6 +13,7 @@ class BuildModelDetails
 {
     use ClassBaseName;
     use ModelRefClass;
+    use CallsCommands;
 
     /**
      * Build the model details.
@@ -22,7 +25,14 @@ class BuildModelDetails
      */
     public function __invoke(SplFileInfo $modelFile): array
     {
-        $modelDetails = app(RunModelShowCommand::class)($modelFile->getBasename('.php'));
+        $model = $modelFile->getBasename('.php');
+        if (!str_ends_with($modelFile->getPath(), 'app/Models')) {
+            $model = getClassNamespaceFromFile($modelFile->getPathname()) . '\\' . $model;
+        }
+
+
+
+        $modelDetails = app(RunModelShowCommand::class)($model);
 
         $reflectionModel = $this->getRefInterface($modelDetails);
         $laravelModel = $reflectionModel->newInstance();
@@ -76,5 +86,10 @@ class BuildModelDetails
             'interfaces' => $interfaces->values(),
             'imports' => $imports,
         ];
+    }
+
+    protected function resolveCommand($command)
+    {
+        // TODO: Implement resolveCommand() method.
     }
 }

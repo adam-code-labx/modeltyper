@@ -4,6 +4,7 @@ namespace FumeApp\ModelTyper\Commands;
 
 use FumeApp\ModelTyper\Actions\Generator;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 
 class ModelTyperCommand extends Command
 {
@@ -20,9 +21,10 @@ class ModelTyperCommand extends Command
      * @var string
      */
     protected $signature = 'model:typer
-                            {--model= : Generate your interfaces for a specific model}
-                            {--global : Generate your interfaces in a global namespace named models}
-                            {--json : Output the result as json}';
+        {--model= : Generate your interfaces for a specific model}
+        {--filepath= : Save your interfaces to a specific filepath}
+        {--global : Generate your interfaces in a global namespace named models}
+        {--json : Output the result as json}';
 
     /**
      * The console command description.
@@ -49,6 +51,7 @@ class ModelTyperCommand extends Command
      */
     public function handle(Generator $generator): int
     {
+
         // determine Laravel version
         $laravelVersion = (float) app()->version();
 
@@ -58,7 +61,12 @@ class ModelTyperCommand extends Command
             return Command::FAILURE;
         }
 
-        echo $generator($this->option('model'), $this->option('global'), $this->option('json'));
+        $output = $generator($this->option('model'), $this->option('global'), $this->option('json'));
+
+        $filePath = $this->option('filepath');
+        $filePath
+            ? File::put($filePath, $output)
+            : $this->info($output);
 
         return Command::SUCCESS;
     }
